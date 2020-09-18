@@ -30,4 +30,4 @@ echo $parametros->length // 456
 
 ### Limitação encontrada até o momento:
 
-- Quando escrevemos uma parte da rota que necessita de regex para poder tratar não poderão ser usados os caracteres `{` e `}`, já que esses são utilizados para criação de blocos.
+- Quando escrevemos uma parte da rota que necessita de regex para poder tratar não poderão ser usados os caracteres `{` e `}`, já que esses são utilizados para criação de blocos. (resolvido)
