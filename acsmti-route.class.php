@@ -35,7 +35,7 @@ if( !class_exists( 'ascmtiRoute' ) ){
 
         private function trataParametros( $match ){
             $novo = $match[0];
-            $novo = preg_replace( ["/\{/","/\}/"], ["(",")"], $novo );
+            $novo = preg_replace( ["/\{\{/","/\}\}/"], ["(",")"], $novo );
 
             if( isset( $match['parametro'] ) && !empty( $match['parametro'] ) ){
                 $novo = str_replace( $match['chamada'], "(?'" . $match['parametro'] . "'(" . $match['valor'] . "))", $novo );

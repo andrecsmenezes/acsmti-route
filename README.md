@@ -3,7 +3,7 @@
 ### Para usar:
 
 ```php
-$padrao = '/path1/{id:\d+}[/{title}[/{length}]]';
+$padrao = '/path1/{{id:\d+}}[/{{title}}[/{{length}}]]';
 $rota   = gerarRegex( $padrao );
 ```
 
