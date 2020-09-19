@@ -37,51 +37,7 @@ if( !class_exists( 'ascmtiRoute' ) ){
                         $parametro = explode( "___", $k );
                         unset( $resultado[ $k ] );
 
-                        if( $parametro[1] == 'int' )
-                            $resultado[ $parametro[0] ] = intval( $v );
-                        else if(
-                               $parametro[1] == 'array'
-                            || $parametro[1] == 'arrayint'
-                            || $parametro[1] == 'arrayfloat'
-                        ){
-                            $array = explode( ",", $v );
-
-                            if( $parametro[1] == 'arrayint' || $parametro[1] == 'arrayfloat' ){
-                                if( $parametro[1] == 'arrayint' ){
-                                    foreach( $array as $k => $v ){
-                                        $array[ $k ] = intval( $v );
-                                    }
-                                }
-                                else {
-                                    foreach( $array as $k => $v ){
-                                        $array[ $k ] = floatval( $v );
-                                    }
-                                }
-                            }
-
-                            $resultado[ $parametro[0] ] = $array;
-                        }
-                        else if(
-                               $parametro[1] == 'object'
-                            || $parametro[1] == 'objectint'
-                            || $parametro[1] == 'objectfloat'
-                        ){
-                            $object_array = [];
-
-                            foreach( explode( ",", $v ) as $object ){
-                                $key                  = preg_replace( "/\[(.*)\]/", "", $object );
-                                $value                = preg_replace( ["/^[^\[]+\[/", "/\]/"], "", $object );
-
-                                if( $parametro[1] == 'objectint' )
-                                    $value = intval( $value );
-                                else if( $parametro[1] == 'objectfloat' )
-                                    $value = floatval( $value );
-
-                                $object_array[ $key ] = $value;
-                            }
-
-                            $resultado[ $parametro[0] ] = (object)$object_array;
-                        }
+                        $resultado[ $parametro[0] ] = $this->setParam( $parametro[1], $v );
                     }
                 }
             }
@@ -101,15 +57,96 @@ if( !class_exists( 'ascmtiRoute' ) ){
 
             return $novo;
         }
+
+        private function setParam( $param, $val ){
+            if( preg_match( "/(int|float|objecta|object|array|boolean)/", $param, $match ) ){
+                $method    = 'set' . ucfirst( $match[0] );
+                $new_param = preg_replace( "/^" . $match[0] . "/", "", $param );
+                $new;
+
+                if( is_array( $val ) ){
+                    foreach( $val as $k => $v ){
+                        $val[ $k ] = $this->setParam(
+                                        $new_param,
+                                        $this->$method( $v )
+                                    );
+                    }
+
+                    return $val;
+                }
+                else if( is_object( $val ) ){
+                    foreach( $val as $k => $v ){
+                        $val->{$k} = $this->setParam(
+                                        $new_param,
+                                        $this->$method( $v )
+                                    );
+                    }
+
+                    return $val;
+                }
+                else {
+                    return $this->setParam(
+                                        $new_param,
+                                        $this->$method( $val )
+                                    );
+                }
+            }
+
+            return $val;
+        }
+
+        private function setInt( $val ){
+            return intval( $val );
+        }
+
+        private function setFloat( $val ){
+            return intfloat( $val );
+        }
+
+        private function setObject( $val ){
+            $array  = explode( "|", $val );
+            $object = [];
+
+            foreach( $array as $a ){
+                $key   = preg_replace( "/\[(.*)\]/", "", $a );
+                $value = preg_replace( ["/^[^\[]+\[/", "/\]/"], "", $a );
+
+                $object[ $key ] = $value;
+            }
+
+            return (object)$object;
+        }
+
+        private function setObjecta( $val ){
+            $array  = explode( "|", $val );
+            $object = [];
+
+            foreach( $array as $a ){
+                $key   = preg_replace( "/\[(.*)\]/", "", $a );
+                $value = preg_replace( ["/^[^\[]+\[/", "/\]/"], "", $a );
+
+                $object[ $key ][] = $value;
+            }
+
+            return (object)$object;
+        }
+
+        private function setArray( $val ){
+            return explode( ",", $val );
+        }
+
+        private function setBoolean( $val ){
+            return boolval( $val );
+        }
     }
 
 }
 
 
 $teste = new acsmtiRoute();
-$regex = $teste->gerarRegex( '/pasta1/{{id,int:([0-9]{2,4})}}[/{{parametros,arrayfloat}}[/{{quantidade,int}}/]/]' );
+$regex = $teste->gerarRegex( '/pasta1/{{pesquisa,arrayobject}}' );
 
 echo "<pre>";
-var_dump( $teste->pegarParametrosDaRota( '/pasta1/123/2.9847,5/456', $regex ) );
+var_dump( $teste->pegarParametrosDaRota( '/pasta1/10,20,30', $regex ) );
 echo "</pre>";
 exit;
