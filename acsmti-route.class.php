@@ -59,10 +59,9 @@ if( !class_exists( 'ascmtiRoute' ) ){
         }
 
         private function setParam( $param, $val ){
-            if( preg_match( "/(int|float|objecta|object|array|boolean)/", $param, $match ) ){
+            if( preg_match( "/(int|float|mobject|object|array|boolean)/", $param, $match ) ){
                 $method    = 'set' . ucfirst( $match[0] );
                 $new_param = preg_replace( "/^" . $match[0] . "/", "", $param );
-                $new;
 
                 if( is_array( $val ) ){
                     foreach( $val as $k => $v ){
@@ -100,7 +99,7 @@ if( !class_exists( 'ascmtiRoute' ) ){
         }
 
         private function setFloat( $val ){
-            return intfloat( $val );
+            return floatval( $val );
         }
 
         private function setObject( $val ){
@@ -132,7 +131,21 @@ if( !class_exists( 'ascmtiRoute' ) ){
         }
 
         private function setArray( $val ){
-            return explode( ",", $val );
+            if( preg_match( "/(\[|\]|\|)/", $val ) ){
+                $itens  = [];
+
+                foreach( explode( "|", $val ) as $item ){
+                    $key   = preg_replace( "/\[(.*)\]/", "", $item );
+                    $value = preg_replace( ["/^[^\[]+\[/", "/\]/"], "", $item );
+
+                    $itens[ $key ] = explode( ',', $value );
+                }
+
+                return $itens;
+            }
+            else {
+                return explode( ",", $val );
+            }
         }
 
         private function setBoolean( $val ){
@@ -144,9 +157,9 @@ if( !class_exists( 'ascmtiRoute' ) ){
 
 
 $teste = new acsmtiRoute();
-$regex = $teste->gerarRegex( '/pasta1/{{pesquisa,arrayobject}}' );
+$regex = $teste->gerarRegex( '/pasta1/{{pesquisa,array}}' );
 
 echo "<pre>";
-var_dump( $teste->pegarParametrosDaRota( '/pasta1/10,20,30', $regex ) );
+var_dump( $teste->pegarParametrosDaRota( '/pasta1/ids[10,20,30]|variaveis[aaa,bbb]|blablabla[1,2,3]', $regex ) );
 echo "</pre>";
 exit;
