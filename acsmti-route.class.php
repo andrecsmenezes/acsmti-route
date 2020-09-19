@@ -116,7 +116,7 @@ if( !class_exists( 'ascmtiRoute' ) ){
             return (object)$object;
         }
 
-        private function setObjecta( $val ){
+        private function setMobject( $val ){
             $array  = explode( "|", $val );
             $object = [];
 
