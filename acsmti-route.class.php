@@ -5,7 +5,9 @@ if( !class_exists( 'ascmtiRoute' ) ){
     class acsmtiRoute{
 
         function gerarRegex( $rota ){
-            $regex_parametros = "/{(?'chamada'((((((?'parametro'([a-z0-9\_]+))\:)?(?'valor'([^{}]+))))|(?R))*))}/";
+            $rota             = str_replace( ["{{","}}"], ["©", "®"], $rota );
+
+            $regex_parametros = "/©(?'chamada'((((((?'parametro'([a-z0-9\_]+))\:)?(?'valor'([^©®]+))))|(?R))*))®/";
             $regex_final      = '';
 
             $regex_final      = preg_replace_callback( $regex_parametros, array( $this, 'trataParametros' ), $rota );
@@ -18,7 +20,7 @@ if( !class_exists( 'ascmtiRoute' ) ){
             $regex_final =  str_replace( "__ENCLOUSURADO__", "[^\/]", $regex_final );
             $regex_final = preg_replace( "/^\//"           , "\/"   , $regex_final );
             $regex_final = preg_replace( "/([^\\\])\//"    , "$1\/" , $regex_final );
-            $regex_final = '^' . $regex_final . '(\/)?$';
+            $regex_final = '/^' . $regex_final . '(\/)?$/';
 
             return $regex_final;
         }
@@ -35,7 +37,7 @@ if( !class_exists( 'ascmtiRoute' ) ){
 
         private function trataParametros( $match ){
             $novo = $match[0];
-            $novo = preg_replace( ["/\{\{/","/\}\}/"], ["(",")"], $novo );
+            $novo = str_replace( ["©","®"], ["(",")"], $novo );
 
             if( isset( $match['parametro'] ) && !empty( $match['parametro'] ) ){
                 $novo = str_replace( $match['chamada'], "(?'" . $match['parametro'] . "'(" . $match['valor'] . "))", $novo );
@@ -48,3 +50,13 @@ if( !class_exists( 'ascmtiRoute' ) ){
     }
 
 }
+
+/*
+$teste = new acsmtiRoute();
+$regex = $teste->gerarRegex( '/pasta1/{{id:([0-9]{2,4})}}[/{{titulo}}[/{{quantidade}}/]/]' );
+
+echo "<pre>";
+var_dump( $teste->pegarParametrosDaRota( '/pasta1/123/teste/456', $regex ) );
+echo "</pre>";
+exit;
+*/
